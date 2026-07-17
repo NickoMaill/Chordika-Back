@@ -1,0 +1,19 @@
+export interface IConfigEnv {
+    NODE_ENV?;
+    APP_NAME?;
+    FRONT_BASEURL?;
+    ADMIN_BASEURL?;
+    API_BASEURL?;
+    API_SCHEDULER_URL?;
+    SHOW_ERROR_DETAILS?;
+    SECRET_REFRESH?;
+    ACCESS_SECRET?;
+    SCHEDULER_SECRET?;
+    APP_SESSION_SECRET?;
+    HTTPS?;
+    PHOTON_BASEURL?;
+    RECAPTCHA_BASEURL?;
+    RECAPTCHA_SECRET?;
+    DEEZER_BASEURL?;
+    [key: string]: any;
+}

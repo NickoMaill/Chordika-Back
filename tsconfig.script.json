@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "resolveJsonModule": true,
+        "target": "ESNext",
+        "module": "CommonJS",
+        "strict": false,
+        "jsx": "preserve",
+        "importHelpers": true,
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "sourceMap": false,
+        "outDir": "./dist/scripts",
+        "baseUrl": ".",
+        "paths": {
+            "~/*": ["./src/*"]
+        },
+        "lib": ["ESNext", "DOM", "DOM.Iterable", "ScriptHost"]
+    },
+    "include": ["src/scripts/**/*.ts"],
+    "ts-node": {
+        "files": true
+    }
+
+    // "ts-node": {
+    // 	"require": ["tsconfig-paths/register"]
+    // }
+}

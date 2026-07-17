@@ -1,0 +1,10 @@
+{
+    "watch": ["**/*", ".env"],
+    "ext": "ts",
+    "ignore": ["**/*.spec.ts", "node_modules", "documentation", "tests/**/*.ts", "*.json"],
+    "exec": "ts-node -r tsconfig-paths/register ./src/app.ts",
+    "events": {
+        "crash": "kill-port 8000"
+    },
+    "delay": 2
+}
