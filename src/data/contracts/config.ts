@@ -14,6 +14,7 @@ export interface IConfigEnv {
     PHOTON_BASEURL?;
     RECAPTCHA_BASEURL?;
     RECAPTCHA_SECRET?;
-    DEEZER_BASEURL?;
+    ITUNES_BASEURL?;
+    LRCLIB_BASEURL?;
     [key: string]: any;
 }

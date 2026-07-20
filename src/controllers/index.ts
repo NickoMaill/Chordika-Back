@@ -6,6 +6,7 @@ import schedulesController from "./schedulerController";
 import usersController from "./usersController";
 import toolsController from "./toolsController";
 import scoresController from "./scoresController";
+import resourcesController from "./resourcesController";
 
 export default [
     authController,
@@ -16,4 +17,5 @@ export default [
     scoresController,
     toolsController,
     usersController,
+    resourcesController
 ]

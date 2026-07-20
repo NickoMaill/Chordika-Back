@@ -24,7 +24,8 @@ class ConfigManager {
             PHOTON_BASEURL: process.env.APP_PHOTON_BASEURL,
             RECAPTCHA_BASEURL: process.env.APP_RECAPTCHA_BASEURL,
             RECAPTCHA_SECRET: process.env.APP_RECAPTCHA_SECRET,
-            DEEZER_BASEURL: process.env.APP_DEEZER_BASEURL,
+            ITUNES_BASEURL: process.env.APP_ITUNES_BASEURL,
+            LRCLIB_BASEURL: process.env.APP_LRCLIB_BASEURL,
         };
     }
 
