@@ -96,8 +96,8 @@ export class DatabaseCore {
         let SQLString = this.customTableFormater(baseSql, ...args);
         const result = await this.databaseEngine<T>(SQLString, queryFormat.data);
         const out = this.formatOutputData<T>(result, query.offset, query.limit);
-        const count = await this.query<{ c: number }>(`SELECT COUNT(1) c FROM ${this.table}`);
-        out.totalAllRecords = count.rows[0].c;
+        const count = await this.query<{ c: string }>(`SELECT COUNT(1) c FROM ${this.table}`);
+        out.totalAllRecords = parseInt(count.rows[0].c);
         return out;
     }
 
@@ -266,14 +266,19 @@ export class DatabaseCore {
             for (const condition in query.where) {
                 switch (condition) {
                     case 'like':
+                    case 'start':
                     case 'notLike': {
                         const isNotLike = condition === 'notLike';
+                        const isStart = condition === 'start';
                         for (const key in query.where[condition]) {
                             query.where[condition][key].forEach((l: string) => {
                                 i++;
-                                const clause = `LOWER(unaccent(${key})) ${isNotLike ? 'NOT ' : ''}LIKE LOWER(unaccent($${i}))`;
+                                const isCaseSensitive = l.endsWith("$");
+                                const toSearch = (x: string | number): string => isCaseSensitive ? `unaccent(${x})` : `LOWER(unaccent(${x}))`
+                                const clause = `${toSearch(key)} ${isNotLike ? 'NOT ' : ''}LIKE ${toSearch("$" + i)}`;
                                 whereString += query.where[condition][key].length > 1 ? `(${clause}) OR ` : `${clause} AND `;
-                                dataOutput.push(`%${l}%`);
+                                const valToSearch = (!isStart ? "%" : "") + l.replace("$", "") + "%"
+                                dataOutput.push(valToSearch);
                             });
                         }
                         break;

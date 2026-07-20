@@ -33,7 +33,7 @@ export class DataTextModule extends Table<DataText, null> {
     protected override SearchContent(): QuerySearch<DataText>[] {
         return [
             { field: 'code', dbField: 'code', typeClause: 'EQUALS', typeWhere: 'EQUALS' },
-            { field: 'description', dbField: 'description', typeClause: 'EQUALS', typeWhere: 'LIKE' },
+            { field: 'q', dbField: 'description', typeClause: 'EQUALS', typeWhere: 'START', caseSensitive: this.Request.query?.type === 'chord' },
             { field: 'type', dbField: 'type', typeClause: 'EQUALS', typeWhere: 'EQUALS' },
         ];
     }

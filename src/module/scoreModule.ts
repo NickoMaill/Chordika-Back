@@ -2,16 +2,16 @@ import App from '~/core/appCore';
 import { DatabaseCore } from '~/core/dataBaseCore';
 import Ses from '~/core/ses';
 import { DataText } from '~/models/dataText';
-import { Score, ScoreOrientation, ScorePage, ScorePayload } from '~/models/score';
-import { ApiTable, Like, QuerySearch } from '~/types/coreApiTypes';
+import { Score, ScoreOrientation, ScorePage, ScorePayload, ScoreClientPayload } from '~/models/score';
+import { ApiTable, Like, QuerySearch, DatabaseCoreQuery } from '~/types/coreApiTypes';
 import { FormMaker, FormMakerStructEnum, InputTypeEnum } from '~/types/formMaker';
 import { OutputQueryRequest, UserAccessLevel } from '~/types/typeCore';
 import Table from './table';
 import { GrammarModel } from '~/types/tableType';
 
-class ScoreModule extends Table<Score, ScorePayload> {
+class ScoreModule extends Table<Score, ScoreClientPayload> {
     constructor() {
-            super(null, Score);
+        super(null, Score);
     }
     protected override Table(): ApiTable {
         return ApiTable.SCORES;
@@ -58,7 +58,7 @@ class ScoreModule extends Table<Score, ScorePayload> {
         return extra;
     }
     protected override DefaultSort(): keyof Score {
-        return 'id';
+        return "updatedAt";
     }
     protected override DefaultAsc(): boolean {
         return false;
@@ -66,25 +66,26 @@ class ScoreModule extends Table<Score, ScorePayload> {
 
     protected override Grammar(): GrammarModel {
         return {
-            plural: '$user.plural',
-            singular: '$user.singular',
-            singularArticle: '$common.specifiers.singularApos',
+            plural: '$score.plural',
+            singular: '$score.singular',
+            singularArticle: '$common.specifiers.singularFem',
             pluralArticle: '$common.specifiers.plural',
-            isFem: false,
+            isFem: true,
         };
     }
 
     protected override TableIcon(): string {
-        return 'PersonRounded';
+        return 'MusicScore';
     }
 
     protected override async performNew(): Promise<OutputQueryRequest<Score>> {
+        const timeSign = this.Payload.timeSig.split('-');
         const inserted = await this.db.insert<ScorePayload, Score>({
             userId: Ses.UID,
             title: this.Payload.title,
             composer: this.Payload.composer,
-            nume: this.Payload.nume,
-            denom: this.Payload.denom,
+            nume: Number(timeSign[0]),
+            denom: Number(timeSign[1]),
             comment: this.Payload.comment ?? '',
             orientation: this.Payload.orientation,
             key: this.Payload.key,
@@ -96,6 +97,29 @@ class ScoreModule extends Table<Score, ScorePayload> {
         return inserted;
     }
 
+    protected override async performUpdate(): Promise<void> {
+        const timeSign = this.Payload.timeSig.split('-');
+        const payload: ScorePayload = {
+            title: this.Payload.title,
+            composer: this.Payload.composer,
+            nume: Number(timeSign[0]),
+            denom: Number(timeSign[1]),
+            comment: this.Payload.comment ?? '',
+            orientation: this.Payload.orientation,
+            key: this.Payload.key,
+            tempo: this.Payload.tempo,
+        };
+        const dbQ: DatabaseCoreQuery<Score, ScorePayload> = {
+            where: {
+                equals: {
+                    id: this.Request.params.id,
+                },
+            },
+            update: payload,
+        };
+        await this.db.updateRecord<Score>(dbQ);
+    }
+
     protected override async performDelete(): Promise<void> {
         await this.db.deleteRecord(this.Request.params.id);
     }
@@ -105,13 +129,13 @@ class ScoreModule extends Table<Score, ScorePayload> {
     }
 
     // public --> start region /////////////////////////////////////////////
-    public static async getAddFormStruct(): Promise<FormMaker> {
+    protected override async FormTemplate(): Promise<FormMaker> {
         const dataTexts = await App.queryGet<DataText>("SELECT * FROM DataText WHERE type IN ('key', 'timeSig') ORDER BY type, SortOrder ASC");
         return {
-            search: [
+            panels: [
                 {
                     title: 'Propriété de la grille',
-                    type: FormMakerStructEnum.SEARCH,
+                    type: FormMakerStructEnum.PANEL,
                     content: [
                         {
                             id: 'title',
@@ -213,11 +237,11 @@ class ScoreModule extends Table<Score, ScorePayload> {
                     type: FormMakerStructEnum.SEARCH,
                     content: [
                         {
-                            id: "title",
-                            label: "titre de la section",
+                            id: 'title',
+                            label: 'titre de la section',
                             index: 1,
                             size: 12,
-                            type: InputTypeEnum.TEXT
+                            type: InputTypeEnum.TEXT,
                         },
                         {
                             id: 'nb',
@@ -240,7 +264,7 @@ class ScoreModule extends Table<Score, ScorePayload> {
         };
     }
 
-    public static async getSearchForm(): Promise<FormMaker> {
+    protected override async SearchFormTemplate(): Promise<FormMaker> {
         const dataTexts = await App.queryGet<DataText>("SELECT * FROM DataText WHERE type IN ('key', 'timeSig') ORDER BY type, SortOrder ASC");
         return {
             search: [

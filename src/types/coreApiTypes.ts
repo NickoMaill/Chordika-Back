@@ -57,6 +57,7 @@ export type DatabaseCoreQuery<T = any, P = any> = {
 
 export type WhereQuery<T> = {
     like?: Like<T>;
+    start?: Like<T>;
     equals?: WhereEquals<T | any>;
     notLike?: Like<T>;
     notEquals?: WhereEquals<T | any>;
@@ -75,8 +76,9 @@ export type QuerySearch<T> = {
     field: string;
     dbField: keyof T | string;
     table?: ApiTable;
-    typeWhere: 'LIKE' | 'EQUALS';
+    typeWhere: 'LIKE' | 'EQUALS' | "START";
     typeClause: 'IN' | 'EQUALS';
+    caseSensitive?: boolean;
 };
 
 export const initCoreQuery: DatabaseCoreQuery<any> = {

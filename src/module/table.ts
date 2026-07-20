@@ -212,7 +212,7 @@ class Table<T extends Model, P> {
     protected async queryOne(id?: number): Promise<void> {
         await this.beforeQuery();
         this.db = new DatabaseCore(this.Table(), this.SqlFields());
-        const baseQuery: DatabaseCoreQuery = {
+        const baseQuery: DatabaseCoreQuery<T> = {
             select: this.ExtraSelect(),
             join: this.ExtraFrom(),
             where: this.ExtraWhere(),
@@ -242,7 +242,7 @@ class Table<T extends Model, P> {
             if (this.ExtraSelect() && this.ExtraSelect().length > 0) {
                 this.ExtraSelect().unshift(this.Table + '.*');
             }
-            const baseQuery: DatabaseCoreQuery = {
+            const baseQuery: DatabaseCoreQuery<T> = {
                 select: this.ExtraSelect(),
                 join: this.ExtraFrom(),
                 where: this.ExtraWhere(),

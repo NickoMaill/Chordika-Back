@@ -20,8 +20,20 @@ export class Score extends Model implements BaseModel {
     public addedAt: string;
     public updatedAt?: string;
 }
-export type ScorePayload = {
+export type ScoreClientPayload = {
     userId: number;
+    title: string;
+    composer: string;
+    timeSig: string;
+    key: string;
+    tempo: number;
+    comment?: string;
+    fontStyle?: string;
+    orientation: ScoreOrientation;
+}
+
+export type ScorePayload = {
+    userId?: number;
     title: string;
     composer: string;
     nume: number;
