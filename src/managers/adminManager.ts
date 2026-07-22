@@ -163,7 +163,7 @@ class AdminManager {
         const tokens = await UserToken.getByQuery({ where: { equals: { isRevoked: false, userId: Ses.UID, deviceId: Ses.DeviceId } /*rawQuery: ["expires > NOW()"]*/ } });
         if (tokens.totalRecords === 0) throw new StandardError('adminManager.checkRefresh', 'UNAUTHORIZED', 'no_session', `no token`, 'token not provided');
         const isOK = await bcrypt.compare(refreshToken, tokens.records[0].token);
-        return isOK;
+        return !isOK;
     }
     public static async checkAccess(token: string): Promise<void> {
         if (token === '' || !token) throw new StandardError('adminManager.checkAccess', 'UNAUTHORIZED', 'no_session', `token not active`, 'token provided is not active');
@@ -213,7 +213,7 @@ class AdminManager {
                     case 'notbeforeerror':
                         throw new StandardError('adminManager.checkRefresh', 'UNAUTHORIZED', 'session_not_active', `token not active`, 'token provided is not active');
                     default:
-                        throw new StandardError('adminManager.checkRefresh', 'FATAL', 'error_happened', `token => ${token} invalid`, 'token invalid, message => ' + err.message);
+                        throw new StandardError('adminManager.checkRefresh', "UNAUTHORIZED", 'token_invalid', `token => ${token} invalid`, 'token invalid, message => ' + err.message);
                 }
             }
             if (dec) {

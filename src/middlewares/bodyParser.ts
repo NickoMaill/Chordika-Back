@@ -18,7 +18,7 @@ export const bodyParser = (req: AppRequest, _res: AppResponse, next: NextFunctio
     next();
 };
 
-export const queryParser = (req: AppRequest, res: AppResponse, next: NextFunction): void => {
+export const queryParser = (req: AppRequest, _res: AppResponse, next: NextFunction): void => {
     AppTools.parseQuery(req.query);
     next();
 };

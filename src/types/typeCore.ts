@@ -1,4 +1,4 @@
-import { RequestHandler } from 'express';
+import { RequestHandler, Request } from 'express';
 
 export type OutputQueryRequest<T> = {
     records: T[];
@@ -38,12 +38,15 @@ export enum TokenTypeEnum {
     HLS = 4,
 }
 
+export type AccessLevelResolver<C = any> = (controller: C, req: Request,) => UserAccessLevel | Promise<UserAccessLevel>;
+export type RouteAccessLevel<C = any> = | UserAccessLevel | AccessLevelResolver<C>;
+
 export type RouteDefinition = {
-    method: 'get' | 'post' | 'put' | 'delete';
+    method: 'get' | 'post' | 'put' | 'patch' | 'delete';
     path: string;
     handlerName: string;
     middlewares: RequestHandler[];
-    accessLevel: UserAccessLevel;
+    accessLevel: RouteAccessLevel;
 };
 
 export function AccessLevel(level: UserAccessLevel): MethodDecorator {

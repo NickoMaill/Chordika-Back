@@ -6,7 +6,7 @@
  */
 
 import { Request, RequestHandler, Response, Router } from 'express';
-import { RouteDefinition, UserAccessLevel } from '../types/typeCore';
+import { RouteAccessLevel, RouteDefinition, UserAccessLevel } from '../types/typeCore';
 import 'reflect-metadata';
 import { checkAuth } from '~/middlewares/auth';
 
@@ -28,9 +28,9 @@ export const CONTROLLER_CONFIG_KEY = Symbol('controller_config');
  * @param authLevel Required access level (default: ADMIN)
  * @param middlewares Additional middlewares
  */
-export function Route(method: 'get' | 'post' | 'put' | 'delete', path: string, authLevel: UserAccessLevel = UserAccessLevel.ADMIN, ...middlewares: RequestHandler[]): (target: any, propertyKey: string) => void {
+export function Route<C = any>(method: 'get' | 'post' | 'put' | 'patch' | 'delete', path: string, authLevel: RouteAccessLevel<C> = UserAccessLevel.ADMIN, ...middlewares: RequestHandler[]): (target: any, propertyKey: string) => void {
     return function (target: any, propertyKey: string): void {
-        const routes: RouteDefinition[] = Reflect.getMetadata(ROUTES_METADATA_KEY, target) || [];
+        const routes: RouteDefinition[] = Reflect.getOwnMetadata(ROUTES_METADATA_KEY, target) || [];
         routes.push({
             method,
             path,
@@ -45,10 +45,11 @@ export function Route(method: 'get' | 'post' | 'put' | 'delete', path: string, a
 /**
  * Shorthand decorators for route methods
  */
-export const Get = (path: string, accessLevel?: UserAccessLevel, ...middlewares: RequestHandler[]): ((target: any, propertyKey: string) => void) => Route('get', path, accessLevel ?? UserAccessLevel.ADMIN, ...middlewares);
-export const Post = (path: string, accessLevel?: UserAccessLevel, ...middlewares: RequestHandler[]): ((target: any, propertyKey: string) => void) => Route('post', path, accessLevel ?? UserAccessLevel.ADMIN, ...middlewares);
-export const Put = (path: string, accessLevel?: UserAccessLevel, ...middlewares: RequestHandler[]): ((target: any, propertyKey: string) => void) => Route('put', path, accessLevel ?? UserAccessLevel.ADMIN, ...middlewares);
-export const Delete = (path: string, accessLevel?: UserAccessLevel, ...middlewares: RequestHandler[]): ((target: any, propertyKey: string) => void) => Route('delete', path, accessLevel ?? UserAccessLevel.ADMIN, ...middlewares);
+export const Get = <C = any>(path: string, accessLevel?: RouteAccessLevel<C>, ...middlewares: RequestHandler[]): ((target: any, propertyKey: string) => void) => Route('get', path, accessLevel ?? UserAccessLevel.ADMIN, ...middlewares);
+export const Post = <C = any>(path: string, accessLevel?: RouteAccessLevel<C>, ...middlewares: RequestHandler[]): ((target: any, propertyKey: string) => void) => Route('post', path, accessLevel ?? UserAccessLevel.ADMIN, ...middlewares);
+export const Put = <C = any>(path: string, accessLevel?: RouteAccessLevel<C>, ...middlewares: RequestHandler[]): ((target: any, propertyKey: string) => void) => Route('put', path, accessLevel ?? UserAccessLevel.ADMIN, ...middlewares);
+export const Patch = <C = any>(path: string, accessLevel?: RouteAccessLevel<C>, ...middlewares: RequestHandler[]): ((target: any, propertyKey: string) => void) => Route('patch', path, accessLevel ?? UserAccessLevel.ADMIN, ...middlewares);
+export const Delete = <C = any>(path: string, accessLevel?: RouteAccessLevel<C>, ...middlewares: RequestHandler[]): ((target: any, propertyKey: string) => void) => Route('delete', path, accessLevel ?? UserAccessLevel.ADMIN, ...middlewares);
 
 /**
  * @description Decorator to define default controller-level config (access level and global middlewares)
@@ -77,15 +78,57 @@ class ControllerBase {
 
     constructor() {
         const proto = Object.getPrototypeOf(this);
-        const routes: RouteDefinition[] = Reflect.getMetadata(ROUTES_METADATA_KEY, proto) || [];
+        const routes: RouteDefinition[] = [];
+
+        let currentPrototype = proto;
+
+        while (currentPrototype && currentPrototype !== ControllerBase.prototype) {
+            const currentRoutes: RouteDefinition[] = Reflect.getOwnMetadata(ROUTES_METADATA_KEY, currentPrototype) ?? [];
+            /*
+             * Les routes du contrôleur enfant sont enregistrées avant
+             * les routes génériques de TableController.
+             */
+            routes.push(...currentRoutes);
+
+            currentPrototype = Object.getPrototypeOf(currentPrototype);
+        }
+
         const controllerConfig: ControllerConfigOptions = Reflect.getMetadata(CONTROLLER_CONFIG_KEY, proto.constructor) || {};
 
         for (const { method, path, handlerName, accessLevel, middlewares } of routes) {
-            const finalAccessLevel = accessLevel ?? controllerConfig.accessLevel ?? UserAccessLevel.ADMIN;
-            const allMiddlewares: RequestHandler[] = [(req, res, next): void | Promise<void> => checkAuth(req, res, next, finalAccessLevel), ...(controllerConfig.middlewares || []), ...(middlewares || [])];
-            const handler = (this as any)[handlerName].bind(this);
-            this.Route[method](path, ...allMiddlewares, handler);
+            const configuredAccessLevel = accessLevel ?? controllerConfig.accessLevel ?? UserAccessLevel.ADMIN;
+
+            const authMiddleware: RequestHandler = async (req, res, next): Promise<void> => {
+                try {
+                    const finalAccessLevel = typeof configuredAccessLevel === 'function' ? await configuredAccessLevel(this, req) : configuredAccessLevel;
+
+                    await checkAuth(req, res, next, finalAccessLevel);
+                } catch (error) {
+                    next(error);
+                }
+            };
+
+            const allMiddlewares: RequestHandler[] = [authMiddleware, ...(controllerConfig.middlewares || []), ...(middlewares || [])];
+
+            const handler = (this as any)[handlerName];
+
+            if (typeof handler !== 'function') {
+                throw new TypeError(`La méthode "${handlerName}" est introuvable dans ${this.constructor.name}`);
+            }
+
+            this.Route[method](path, ...allMiddlewares, handler.bind(this));
         }
+    }
+
+    private getRouteDefinitions(): RouteDefinition[] {
+        const prototypes: object[] = [];
+
+        let prototype = Object.getPrototypeOf(this);
+        while (prototype && prototype !== Object.prototype) {
+            prototypes.unshift(prototype);
+            prototype = Object.getPrototypeOf(prototype);
+        }
+        return prototypes.flatMap((currentPrototype) => Reflect.getOwnMetadata(ROUTES_METADATA_KEY, currentPrototype) ?? []);
     }
 
     /**

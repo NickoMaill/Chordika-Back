@@ -19,8 +19,8 @@ export const checkAuth = async (req: AppRequest, res: AppResponse, next: NextFun
                 const token = (req.headers['authorization'] ?? '').replace('Bearer ', '');
                 await AdminManager.checkAccess(token);
 
-                const isNotRevoked = await AdminManager.checkRevoke(req.cookies['refresh'] || '');
-                if (!isNotRevoked) {
+                const isRevoked = await AdminManager.checkRevoke(req.cookies['refresh'] || '');
+                if (isRevoked) {
                     await AdminManager.clearSession();
                     res.clearCookie('refresh');
                     res.clearCookie('proxy');

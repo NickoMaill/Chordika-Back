@@ -17,6 +17,9 @@ export type Like<T = any> = {
     [K in keyof T | any]?: string[];
 };
 
+export type TableExtraWhereType<T> = { like?: Like<T>; equals?: Partial<T> }
+export type TableExtraFromType = { reference: string; target: string; join: ApiTable; type: 'INNER' | 'LEFT' | ''; joinTarget?: ApiTable }
+
 export type DatabaseCoreQuery<T = any, P = any> = {
     /**
      * @description a join array array object
@@ -102,4 +105,5 @@ export enum ApiTable {
     SCHEDULES = 'schedules',
     TOKENS = 'tokens',
     USERS_PREFERENCES = 'userspreferences',
+    REPERTOIRES = "repertoires"
 }

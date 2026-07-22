@@ -31,9 +31,9 @@ class ScoreModule extends Table<Score, ScoreClientPayload> {
     protected override AllowExport(): boolean {
         return false;
     }
-
     protected override SearchContent(): QuerySearch<Score>[] {
         return [
+            { field: 'id', dbField: 'id', typeWhere: "EQUALS", typeClause: 'EQUALS' },
             { field: 'title', dbField: 'title', typeWhere: 'LIKE', typeClause: 'EQUALS' },
             { field: 'composer', dbField: 'composer', typeWhere: 'LIKE', typeClause: 'EQUALS' },
             { field: 'key', dbField: '', typeWhere: 'EQUALS', typeClause: 'EQUALS' },
@@ -84,6 +84,7 @@ class ScoreModule extends Table<Score, ScoreClientPayload> {
             userId: Ses.UID,
             title: this.Payload.title,
             composer: this.Payload.composer,
+            isFavorite: Boolean(this.Payload.isFavorite),
             nume: Number(timeSign[0]),
             denom: Number(timeSign[1]),
             comment: this.Payload.comment ?? '',
@@ -99,11 +100,13 @@ class ScoreModule extends Table<Score, ScoreClientPayload> {
 
     protected override async performUpdate(): Promise<void> {
         const timeSign = this.Payload.timeSig.split('-');
+        console.log(this.Payload);
         const payload: ScorePayload = {
             title: this.Payload.title,
             composer: this.Payload.composer,
             nume: Number(timeSign[0]),
             denom: Number(timeSign[1]),
+            isFavorite: Boolean(this.Payload.isFavorite),
             comment: this.Payload.comment ?? '',
             orientation: this.Payload.orientation,
             key: this.Payload.key,
@@ -206,7 +209,7 @@ class ScoreModule extends Table<Score, ScoreClientPayload> {
                             id: 'orientation',
                             label: 'Orientation',
                             index: 2,
-                            size: 6,
+                            size: 3,
                             type: InputTypeEnum.RADIO,
                             required: true,
                             value: 0,
@@ -214,6 +217,18 @@ class ScoreModule extends Table<Score, ScoreClientPayload> {
                             radioOptions: [
                                 { value: ScoreOrientation.PORTRAIT, label: 'Portrait' },
                                 { value: ScoreOrientation.LANDSCAPE, label: 'Paysage' },
+                            ],
+                        },
+                        {
+                            id: "isFavorite",
+                            label: "Définir comme favoris ?",
+                            index: 3,
+                            size: 3,
+                            type: InputTypeEnum.RADIO,
+                            row: true,
+                            radioOptions: [
+                                { value: true, label: 'Oui' },
+                                { value: false, label: 'Non' },
                             ],
                         },
                         {

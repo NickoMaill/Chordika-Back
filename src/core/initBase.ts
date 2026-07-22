@@ -1,6 +1,6 @@
 import controllers from '~/controllers';
 import { Express } from 'express';
-import listEndpoints from 'express-list-endpoints';
+import { ILayer } from 'express-serve-static-core';
 import configManager from '../managers/configManager';
 import logColors from '../helpers/logColors';
 import { DatabaseCore } from './dataBaseCore';
@@ -18,19 +18,19 @@ class InitBase {
         for (let variable in configManager.getConfig) {
             console.log(logColors.FgRed, `${variable.padEnd(30, ' ')}`, logColors.Reload, `= ${configManager.getConfig[variable]}`);
         }
-        listEndpoints(app).forEach((info) => {
-            if (info.path === '/') {
-                info.path = 'init';
-            }
+        // listEndpoints(app).forEach((info) => {
+        //     if (info.path === '/') {
+        //         info.path = 'init';
+        //     }
 
-            if (info.path === '*') {
-                info.path = 'error';
-            }
-            info.methods.forEach((r) => {
-                const nameRoute: string = `[${(info.path.split('/')[0] ?? '') !== 'init' && info.path.split('/')[0] !== 'error' ? info.path.split('/')[2] : info.path}]`;
-                console.info(`${nameRoute.padEnd(50, ' ')}`, logColors.FgYellow, `${r.padEnd(10)}`, logColors.Reload, `${'⇨'.padEnd(10, ' ')} "${info.path}"`);
-            });
-        });
+        //     if (info.path === '*') {
+        //         info.path = 'error';
+        //     }
+        //     info.methods.forEach((r) => {
+        //         const nameRoute: string = `[${(info.path.split('/')[0] ?? '') !== 'init' && info.path.split('/')[0] !== 'error' ? info.path.split('/')[2] : info.path}]`;
+        //         console.info(`${nameRoute.padEnd(50, ' ')}`, logColors.FgYellow, `${r.padEnd(10)}`, logColors.Reload, `${'⇨'.padEnd(10, ' ')} "${info.path}"`);
+        //     });
+        // });
         // }
 
         const dateStr = DateTime.now;
@@ -49,13 +49,38 @@ class InitBase {
         }
     }
 
+    private logRoutes(routeBase: string, stack: ILayer[]): void {
+        const routes = stack
+            .filter((layer: any) => layer.route)
+            .map((layer: any) => ({
+                methods: Object.keys(layer.route.methods)
+                    .map((method) => method.toUpperCase())
+                    .join(', '),
+                path: routeBase + layer.route.path,
+            }));
+        routes.forEach((info) => {
+            let path = routeBase.trim() + info.path
+            if (path === '/') {
+                path = 'init';
+            }
+
+            if (path === '*') {
+                path = 'error';
+            }
+            const nameRoute: string = `[${(path.split('/')[0] ?? '') !== 'init' && path.split('/')[0] !== 'error' ? routeBase : path}]`;
+            console.info(`${nameRoute.padEnd(50, ' ')}`, logColors.FgYellow, `${info.methods.padEnd(10)}`, logColors.Reload, `${'⇨'.padEnd(10, ' ')} "${path}"`);
+        });
+    }
+
     public async initRoutes(app: Express): Promise<void> {
         for (const controller of controllers) {
             if (controller instanceof ControllerBase) {
                 const ctor = controller.constructor;
                 const controllerConfig: ControllerConfigOptions = Reflect.getMetadata(CONTROLLER_CONFIG_KEY, ctor) || {};
                 const routeBase = controllerConfig.baseRoute ?? ctor.name.replace(/Controller$/, '').toLowerCase();
+                const stack = controller.router.stack ?? [];
                 app.use(`/api/${routeBase}`, controller.router);
+                this.logRoutes(routeBase, stack);
             }
         }
     }

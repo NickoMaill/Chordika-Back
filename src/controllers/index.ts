@@ -7,5 +7,6 @@ import usersController from './usersController';
 import toolsController from './toolsController';
 import scoresController from './scoresController';
 import resourcesController from './resourcesController';
+import repertoiresController from './repertoiresController';
 
-export default [authController, dataTextController, defaultController, logsController, schedulesController, scoresController, toolsController, usersController, resourcesController];
+export default [authController, dataTextController, defaultController, logsController, schedulesController, scoresController, toolsController, usersController, resourcesController, repertoiresController];

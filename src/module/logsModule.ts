@@ -1,5 +1,5 @@
 import { ApiTable, QuerySearch } from '~/types/coreApiTypes';
-import { UserAccessLevel } from '~/types/typeCore';
+import { UserAccessLevel, OutputQueryRequest } from '~/types/typeCore';
 import { Log } from '~/models/logs';
 import Table from './table';
 import { GrammarModel, TableDisplay, TableType } from '~/types/tableType';
@@ -117,6 +117,11 @@ class LogsModule extends Table<Log, null> {
             search: Array.of(searchPanel),
         };
         return form;
+    }
+    protected override async handleQuery(): Promise<void> {
+        this.getData.records.forEach(r => {
+            r.description = r.description.replaceAll("\n", "<br/>");
+        })
     }
     protected override async FormTemplate(): Promise<FormMaker> {
         const form: FormMaker = {

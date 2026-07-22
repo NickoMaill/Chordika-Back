@@ -1,9 +1,10 @@
+import { TableExtraWhereType, TableExtraFromType } from './../types/coreApiTypes';
 import { request } from 'express';
 import { AppRequest } from '~/core/controllerBase';
-import { ApiTable, DatabaseCoreQuery, Like, QuerySearch } from '~/types/coreApiTypes';
+import { ApiTable, DatabaseCoreQuery, QuerySearch } from '~/types/coreApiTypes';
 import { DatabaseCore } from '~/core/dataBaseCore';
 import { StandardError } from '~/core/class/standardError';
-import { OutputQueryRequest, UserAccessLevel } from '~/types/typeCore';
+import { OutputQueryRequest, UserAccessLevel, BaseModel } from '~/types/typeCore';
 import { AppTools } from '~/helpers/appTools';
 import { FormMaker } from '~/types/formMaker';
 import { FormField, GrammarModel, ICenterConfig, TableDisplay } from '~/types/tableType';
@@ -11,12 +12,12 @@ import { Model } from '~/models/base';
 import logManager from '~/managers/logManager';
 
 export type ValidateFormFieldType<T> = { field: keyof T; name: string };
-type ModelCtor<T extends Model> = {
+type ModelCtor<T extends Model & BaseModel> = {
     new (): T;
     getColumns(): string[];
 };
 
-class Table<T extends Model, P> {
+class Table<T extends Model & BaseModel, P> {
     // ------------- default PARAMS -----------------
     protected Table(): ApiTable {
         return ApiTable.LOGS;
@@ -76,12 +77,12 @@ class Table<T extends Model, P> {
         return this.Table();
     }
     protected EnableActionLogs(): boolean {
-        return false;
+        return true;
     }
-    protected ExtraFrom(): { reference: string; target: string; join: ApiTable; type: 'INNER' | 'LEFT' | ''; joinTarget?: ApiTable }[] {
+    protected ExtraFrom(): TableExtraFromType[] {
         return null;
     }
-    protected ExtraWhere(): { like?: Like<T>; equals?: Partial<T> } {
+    protected ExtraWhere(): TableExtraWhereType<T> {
         return null;
     }
     protected SearchContent(): QuerySearch<T>[] {
@@ -220,21 +221,24 @@ class Table<T extends Model, P> {
         if (!baseQuery.where?.equals) {
             baseQuery.where = { ...baseQuery.where, rawQuery: [] };
         }
-        baseQuery.where.rawQuery.push(`${this.Table()}.id = ${id ? id : this.Request.params.id}`);
+        if (!baseQuery.where?.rawQuery) {
+            baseQuery.where.rawQuery = [];
+        }
+        baseQuery.where.rawQuery?.push(`${this.Table()}.id = ${id ? id : this.Request.params.id}`);
         this.getData = await this.db.getByQuery<T>(baseQuery);
-        this.getData = await this.handleQuery(this.getData);
+        await this.handleQuery();
     }
 
     protected async queryAll(): Promise<void> {
         await this.beforeQuery();
         await this.tableQuery();
-        this.getData = await this.handleQuery(this.getData);
+        await this.handleQuery();
     }
 
-    protected async searchByQuery(query: DatabaseCoreQuery<T>): Promise<OutputQueryRequest<T>> {
+    protected async searchByQuery(query: DatabaseCoreQuery<T>): Promise<void> {
         await this.beforeQuery();
         await this.tableQuery(query);
-        return await this.handleQuery(this.getData);
+        await this.handleQuery();
     }
 
     private async tableQuery(query: DatabaseCoreQuery<T> = null): Promise<void> {
@@ -266,11 +270,11 @@ class Table<T extends Model, P> {
 
     protected async Log(deleteAction: boolean = false): Promise<string> {
         const oldGetData = !this.getData || this.getData.records.length < 1 ? null : this.getData.records[0];
-        await this.queryOne();
-
+        
         if (deleteAction) {
             return AppTools.SetGenericActionLog(this.SqlFields(), this.getData.records[0], null);
         } else {
+            await this.queryOne();
             return AppTools.SetGenericActionLog(this.SqlFields(), this.getData.records[0], oldGetData);
         }
     }
@@ -295,9 +299,7 @@ class Table<T extends Model, P> {
         throw new StandardError('table.performBulkUpdateFile', 'BAD_REQUEST', 'unknown_method', 'unknown method requested');
     }
 
-    protected async handleQuery(data: OutputQueryRequest<T>): Promise<OutputQueryRequest<T>> {
-        return data;
-    }
+    protected async handleQuery(): Promise<void> {}
     protected async beforeQuery(): Promise<void> {}
     // -----------------------------------------------------
 
@@ -352,12 +354,13 @@ class Table<T extends Model, P> {
         this.db = new DatabaseCore(this.Table(), this.SqlFields());
         await this.validateForm();
         const inserted = await this.performNew();
+        this.Request.params.id = inserted.records[0].id
         if (this.EnableActionLogs()) {
             let logTxt = 'Action : New \n\n';
             const logContent = await this.Log();
             if (logContent !== '') {
                 logTxt += logContent;
-                await logManager.setLog(this.LogAction(), logTxt);
+                await logManager.setLog(this.LogAction(), logTxt, "", "", inserted.records);
             }
         }
         return inserted;
@@ -375,7 +378,7 @@ class Table<T extends Model, P> {
             const logContent = await this.Log();
             if (logContent !== '') {
                 logTxt += logContent;
-                await logManager.setLog(this.LogAction(), logTxt);
+                await logManager.setLog(this.LogAction(), logTxt, "", "", this.getData.records);
             }
         }
     }
@@ -391,7 +394,7 @@ class Table<T extends Model, P> {
             const logContent = await this.Log(true);
             if (logContent !== '') {
                 logTxt += logContent;
-                await logManager.setLog(this.LogAction(), logTxt);
+                await logManager.setLog(this.LogAction(), logTxt, "", "", this.getData.records);
             }
         }
     }
@@ -416,8 +419,8 @@ class Table<T extends Model, P> {
         await this.performBulkUpdateFile();
     }
 
-    public async searchByQueryPublic(query: DatabaseCoreQuery<T>): Promise<OutputQueryRequest<T>> {
-        return await this.searchByQuery(query);
+    public async searchByQueryPublic(query: DatabaseCoreQuery<T>): Promise<void> {
+        await this.searchByQuery(query);
     }
 
     public get Data(): OutputQueryRequest<T> {

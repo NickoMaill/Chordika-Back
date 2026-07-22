@@ -164,3 +164,34 @@ CREATE TRIGGER update_updatedAt
     ON ScoreMetadatas
     FOR EACH ROW
 EXECUTE PROCEDURE update_updatedAt();
+
+CREATE TABLE Repertoires (
+  ID SERIAL PRIMARY KEY,
+  userId INTEGER NOT NULL,
+  title VARCHAR(250) NOT NULL,
+  addedAt TIMESTAMP DEFAULT NOW() NOT NULL,
+  updatedAt TIMESTAMP,
+  CONSTRAINT fk_reper_uid FOREIGN KEY(userId) REFERENCES Users(id)
+);
+
+CREATE TRIGGER update_updatedAt
+    BEFORE UPDATE
+    ON Repertoires
+    FOR EACH ROW
+EXECUTE PROCEDURE update_updatedAt();
+
+CREATE TABLE ScoresRepertoires (
+  ID SERIAL PRIMARY KEY,
+  scoreId INTEGER NOT NULL,
+  repertoireId INTEGER NOT NULL,
+  addedAt TIMESTAMP DEFAULT NOW() NOT NULL,
+  updatedAt TIMESTAMP,
+  CONSTRAINT fk_score_screp FOREIGN KEY(scoreId) REFERENCES Scores(id),
+  CONSTRAINT fk_reper_screp FOREIGN KEY(repertoireId) REFERENCES Repertoires(id)
+);
+
+CREATE TRIGGER update_updatedAt
+    BEFORE UPDATE
+    ON ScoresRepertoires
+    FOR EACH ROW
+EXECUTE PROCEDURE update_updatedAt();

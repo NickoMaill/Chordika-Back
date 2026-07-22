@@ -7,6 +7,7 @@ export class Score extends Model implements BaseModel {
     public id: number;
     public userId: number;
     public isLib: boolean;
+    public isFavorite: boolean;
     public title: string;
     public composer: string;
     public nume: number;
@@ -24,6 +25,7 @@ export type ScoreClientPayload = {
     userId: number;
     title: string;
     composer: string;
+    isFavorite: boolean;
     timeSig: string;
     key: string;
     tempo: number;
@@ -37,6 +39,7 @@ export type ScorePayload = {
     title: string;
     composer: string;
     nume: number;
+    isFavorite: boolean;
     denom: number;
     key: string;
     tempo: number;
