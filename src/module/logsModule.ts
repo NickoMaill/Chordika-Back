@@ -1,5 +1,5 @@
 import { ApiTable, QuerySearch } from '~/types/coreApiTypes';
-import { UserAccessLevel, OutputQueryRequest } from '~/types/typeCore';
+import { UserAccessLevel } from '~/types/typeCore';
 import { Log } from '~/models/logs';
 import Table from './table';
 import { GrammarModel, TableDisplay, TableType } from '~/types/tableType';
