@@ -2,7 +2,7 @@ import os from 'os';
 import dns from 'dns/promises';
 import fs from 'fs';
 import path from 'path';
-import checkDiskSpace from "check-disk-space";
+import checkDiskSpace from 'check-disk-space';
 import { AppRequest } from '~/core/controllerBase';
 import { DiskUsageType, MonitorType, SQLTestOutputResult } from '~/types/typeCore';
 import App from '~/core/appCore';
@@ -38,7 +38,7 @@ class ToolManager {
             const disks = await this.getDiskUsage();
             const info: MonitorType = {
                 date: now.toISOString(),
-                datasource: configManager.isProduction() ? "" : process.env.DATABASE_URL || 'Non spécifiée',
+                datasource: configManager.isProduction() ? '' : process.env.DATABASE_URL || 'Non spécifiée',
                 smtpServer: process.env.SMTP_SERVER || 'Non spécifié',
                 rootURL: process.env.ROOT_URL || req.protocol + '://' + req.get('host'),
                 rootPath: process.cwd(),

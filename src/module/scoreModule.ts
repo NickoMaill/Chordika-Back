@@ -58,7 +58,7 @@ class ScoreModule extends Table<Score, ScoreClientPayload> {
         return extra;
     }
     protected override DefaultSort(): keyof Score {
-        return "updatedAt";
+        return 'updatedAt';
     }
     protected override DefaultAsc(): boolean {
         return false;

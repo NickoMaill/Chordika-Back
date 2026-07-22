@@ -104,4 +104,4 @@ class TableController<T extends Model, P extends any> extends ControllerBase {
     }
 }
 
-export default TableController; 
+export default TableController;

@@ -76,7 +76,7 @@ export type QuerySearch<T> = {
     field: string;
     dbField: keyof T | string;
     table?: ApiTable;
-    typeWhere: 'LIKE' | 'EQUALS' | "START";
+    typeWhere: 'LIKE' | 'EQUALS' | 'START';
     typeClause: 'IN' | 'EQUALS';
     caseSensitive?: boolean;
 };

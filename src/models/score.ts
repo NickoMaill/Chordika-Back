@@ -1,6 +1,6 @@
-import { BaseModel } from "~/types/typeCore";
-import { Model } from "./base";
-import { ApiTable } from "~/types/coreApiTypes";
+import { BaseModel } from '~/types/typeCore';
+import { Model } from './base';
+import { ApiTable } from '~/types/coreApiTypes';
 
 export class Score extends Model implements BaseModel {
     protected static override table = ApiTable.SCORES;
@@ -30,7 +30,7 @@ export type ScoreClientPayload = {
     comment?: string;
     fontStyle?: string;
     orientation: ScoreOrientation;
-}
+};
 
 export type ScorePayload = {
     userId?: number;
@@ -43,7 +43,7 @@ export type ScorePayload = {
     comment?: string;
     fontStyle?: string;
     orientation: ScoreOrientation;
-}
+};
 /**
  * @description Conteneur de la Grille (Page)
  */

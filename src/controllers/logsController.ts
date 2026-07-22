@@ -5,7 +5,7 @@ import { AppParams, AppRequest, AppResponse, ControllerConfig } from '~/core/con
 import { StandardError } from '~/core/class/standardError';
 import { UserAccessLevel } from '~/types/typeCore';
 
-@ControllerConfig({ baseRoute: "logs", accessLevel: UserAccessLevel.ADMIN })
+@ControllerConfig({ baseRoute: 'logs', accessLevel: UserAccessLevel.ADMIN })
 class LogsController extends TableController<Log, null> {
     constructor() {
         super(LogsModule);

@@ -80,9 +80,9 @@ export default class ApiManager {
         }
         let payload = body;
         if (formData) {
-            payload = formData
+            payload = formData;
         } else {
-            if (requestHeaders.has("Content-Type") && requestHeaders.get("Content-Type") !== "application/x-www-form-urlencoded") {
+            if (requestHeaders.has('Content-Type') && requestHeaders.get('Content-Type') !== 'application/x-www-form-urlencoded') {
                 payload = JSON.stringify(body);
             }
         }
@@ -100,7 +100,7 @@ export default class ApiManager {
             console.log(`Api Manager Fetching URL (${method}):`, url);
             const response = await fetch(url, fetchOptions);
             clearTimeout(timer);
-            console.log(response, fetchOptions)
+            console.log(response, fetchOptions);
             if (!response.ok) {
                 const text = await response.text();
                 throw new StandardError('ApiManager.request', 'FATAL', 'error_happened', 'An error happened while api request', `HTTP ${response.status}: ${response.statusText}`, false, text);
@@ -112,7 +112,7 @@ export default class ApiManager {
             console.log(error);
             throw new StandardError('ApiManager.request', 'BAD_REQUEST', 'error_happened', 'An error happened while api request', `An error happened while trying call external Api`, false, error);
         } finally {
-            console.log("Api Manager Fetch Successful ✅");
+            console.log('Api Manager Fetch Successful ✅');
         }
     }
 
@@ -174,7 +174,7 @@ export default class ApiManager {
      * @returns {Promise<T>}
      */
     protected async onResponse<T>(response: Response): Promise<T> {
-        if (response.statusText.toLowerCase() === "no content") return;
+        if (response.statusText.toLowerCase() === 'no content') return;
         return await response.json();
     }
 }

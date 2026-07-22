@@ -36,7 +36,7 @@ export class SchedulerManager {
             } else {
                 continue;
             }
-        };
+        }
     }
     public async exec(exec: string = this.Request.params.do): Promise<void> {
         this.task = new ScheduleTask(exec);

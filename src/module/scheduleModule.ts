@@ -45,7 +45,7 @@ class ScheduleModule extends Table<Task, TaskPayload> {
         ];
     }
     protected override DefaultSort(): keyof Task {
-        return "lastExecution";
+        return 'lastExecution';
     }
     protected override DefaultAsc(): boolean {
         return false;

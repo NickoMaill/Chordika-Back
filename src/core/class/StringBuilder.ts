@@ -26,13 +26,13 @@ export default class StringBuilder {
     public insertAt(index: number, value: string): StringBuilder {
         const current = this.toString();
         const newStr = current.slice(0, index) + value + current.slice(index);
-        this.parts = [newStr]
+        this.parts = [newStr];
         return this;
     }
 
     public replace(search: string | RegExp, replace: string): StringBuilder {
         const result = this.toString().replace(search, replace);
-        this.parts = [result]
+        this.parts = [result];
         return this;
     }
 

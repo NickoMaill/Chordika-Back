@@ -60,15 +60,8 @@ class CommunicationManager {
         const user = await mailModule.getContactByEmail(payload.email);
         if (!user) {
             const added = await mailModule.createContact(toAdd);
-            await App.queryDo("INSERT INTO Subscribers (email, phoneNumber, firstName, lastName, listIds, externalId) VALUES ($1 , $2, $3, $4, $5, $6)", 
-                payload.email, 
-                payload.tel,
-                payload.firstName, 
-                payload.lastName,
-                toAdd.listIds.join(","),
-                added.id
-            )
-            await logManager.setLog("Abonnés.ées", `Un nouvel abonné a souscrit à la mailing list => ${payload.email}`);
+            await App.queryDo('INSERT INTO Subscribers (email, phoneNumber, firstName, lastName, listIds, externalId) VALUES ($1 , $2, $3, $4, $5, $6)', payload.email, payload.tel, payload.firstName, payload.lastName, toAdd.listIds.join(','), added.id);
+            await logManager.setLog('Abonnés.ées', `Un nouvel abonné a souscrit à la mailing list => ${payload.email}`);
             return { id: toAdd.attributes.EXT_ID, alreadyAdded: false };
         } else {
             return { id: user.attributes['EXT_ID'], alreadyAdded: true };

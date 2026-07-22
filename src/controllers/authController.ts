@@ -10,7 +10,7 @@ import { StandardError } from '~/core/class/standardError';
 import configManager from '~/managers/configManager';
 import dayjs from 'dayjs';
 
-@ControllerConfig({ baseRoute: "auth", accessLevel: UserAccessLevel.USER })
+@ControllerConfig({ baseRoute: 'auth', accessLevel: UserAccessLevel.USER })
 class AuthController extends ControllerBase {
     @Post('/register', UserAccessLevel.VISITOR)
     private async register(req: AppRequest<UserRegisterPayload>, res: AppResponse): Promise<void> {

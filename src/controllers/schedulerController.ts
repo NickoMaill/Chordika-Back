@@ -6,7 +6,7 @@ import ScheduleModule from '~/module/scheduleModule';
 import { Task, TaskPayload } from '~/models/task';
 import { UserAccessLevel } from '~/types/typeCore';
 
-@ControllerConfig({ baseRoute: "schedules", accessLevel: UserAccessLevel.ADMIN })
+@ControllerConfig({ baseRoute: 'schedules', accessLevel: UserAccessLevel.ADMIN })
 class SchedulesController extends TableController<Task, TaskPayload> {
     constructor() {
         super(ScheduleModule);

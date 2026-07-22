@@ -1,16 +1,16 @@
 import { LRCLIBResponseType } from './contracts/lrclibTypes';
 import ApiManager from '~/managers/apiManager';
-import configManager from "~/managers/configManager";
+import configManager from '~/managers/configManager';
 
 class Lrclib extends ApiManager {
     constructor() {
-        super(configManager.getConfig.LRCLIB_BASEURL)
+        super(configManager.getConfig.LRCLIB_BASEURL);
     }
 
     // public --> start region /////////////////////////////////////////////
     public async searchLyrics(query: string): Promise<LRCLIBResponseType[]> {
         const formattedQuery = encodeURIComponent(query);
-        const response = await this.get<LRCLIBResponseType[]>(`search?q=${formattedQuery}`)
+        const response = await this.get<LRCLIBResponseType[]>(`search?q=${formattedQuery}`);
         return response;
     }
 
@@ -18,9 +18,9 @@ class Lrclib extends ApiManager {
         const formattedTrack = decodeURIComponent(trackName);
         const formattedArtist = decodeURIComponent(artistName);
         const searchParams = new URLSearchParams();
-        searchParams.append("artist_name", formattedArtist)
-        searchParams.append("track_name", formattedTrack);        
-        const response = await this.get<LRCLIBResponseType>(`get?${searchParams.toString()}`)
+        searchParams.append('artist_name', formattedArtist);
+        searchParams.append('track_name', formattedTrack);
+        const response = await this.get<LRCLIBResponseType>(`get?${searchParams.toString()}`);
         return response;
     }
 

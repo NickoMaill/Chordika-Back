@@ -7,7 +7,7 @@ export type MusicTrack = {
     releaseDate: string;
     previewUrl: string;
     artwork: string;
-}
+};
 
 export const musicTrackMapper = (arr: ItunesTrackType[]): MusicTrack[] => {
     return arr.map((t) => ({
@@ -19,4 +19,4 @@ export const musicTrackMapper = (arr: ItunesTrackType[]): MusicTrack[] => {
         previewUrl: t.previewUrl,
         artwork: t.artworkUrl100,
     }));
-}
+};

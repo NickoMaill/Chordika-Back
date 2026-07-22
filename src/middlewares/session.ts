@@ -7,7 +7,7 @@ export const initSes = (req: AppRequest, _res: AppResponse, next: NextFunction):
     if (perfUID) {
         req.perfUID = perfUID;
     }
-    
+
     Ses.setSession(req);
     next();
 };

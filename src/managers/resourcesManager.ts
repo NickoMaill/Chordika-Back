@@ -1,7 +1,7 @@
 import { MusicTrack, musicTrackMapper } from './../models/musicTrack';
 import { Lyrics, lyricsMapper } from './../models/lyrics';
-import lrclib from "~/module/services/lyrics/lrclib";
-import itunes from "~/module/services/music/itunes";
+import lrclib from '~/module/services/lyrics/lrclib';
+import itunes from '~/module/services/music/itunes';
 class ResourcesManager {
     constructor() {}
 

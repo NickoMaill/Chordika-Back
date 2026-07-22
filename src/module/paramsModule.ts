@@ -46,7 +46,7 @@ class ParamsModule extends DatabaseCore {
         }
         payload.bioText = AppTools.sanitizeHTML(decodeURIComponent(payload.bioText));
         payload.proText = AppTools.sanitizeHTML(decodeURIComponent(payload.proText));
-        payload.defaultListsMailing = (payload.defaultListsMailing as string).split(',').map(l => parseInt(l))
+        payload.defaultListsMailing = (payload.defaultListsMailing as string).split(',').map((l) => parseInt(l));
         const query: DatabaseCoreQuery<Params> = {
             update: payload,
         };

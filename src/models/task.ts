@@ -29,7 +29,7 @@ export type TaskPayload = {
     method: string;
     frequence: string;
     isActive: boolean;
-}
+};
 
 export class ScheduleTask {
     public data: Task;

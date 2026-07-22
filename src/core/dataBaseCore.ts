@@ -273,11 +273,11 @@ export class DatabaseCore {
                         for (const key in query.where[condition]) {
                             query.where[condition][key].forEach((l: string) => {
                                 i++;
-                                const isCaseSensitive = l.endsWith("$");
-                                const toSearch = (x: string | number): string => isCaseSensitive ? `unaccent(${x})` : `LOWER(unaccent(${x}))`
-                                const clause = `${toSearch(key)} ${isNotLike ? 'NOT ' : ''}LIKE ${toSearch("$" + i)}`;
+                                const isCaseSensitive = l.endsWith('$');
+                                const toSearch = (x: string | number): string => (isCaseSensitive ? `unaccent(${x})` : `LOWER(unaccent(${x}))`);
+                                const clause = `${toSearch(key)} ${isNotLike ? 'NOT ' : ''}LIKE ${toSearch('$' + i)}`;
                                 whereString += query.where[condition][key].length > 1 ? `(${clause}) OR ` : `${clause} AND `;
-                                const valToSearch = (!isStart ? "%" : "") + l.replace("$", "") + "%"
+                                const valToSearch = (!isStart ? '%' : '') + l.replace('$', '') + '%';
                                 dataOutput.push(valToSearch);
                             });
                         }
@@ -362,7 +362,7 @@ export class DatabaseCore {
             totalRecords: 0,
             offset: limit < 0 ? null : offset,
             limit: limit < 0 ? null : limit,
-            totalAllRecords: 0
+            totalAllRecords: 0,
         };
 
         if (result.rowCount === 0) {

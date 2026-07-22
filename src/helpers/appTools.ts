@@ -144,13 +144,13 @@ export class AppTools {
                     const fieldIndex = getIndex(key);
                     if (fieldIndex > -1) {
                         const founded = queryStruct[fieldIndex];
-                        if (founded.typeWhere === 'LIKE' || founded.typeWhere === 'START') {
+                        if (founded.typeWhere === 'LIKE' || founded.typeWhere === 'START') {
                             const clauseKey = founded.typeWhere.toLowerCase();
                             const value = (query[key] as string).split('¤')[0];
                             if (!out.where[clauseKey]) {
                                 out.where[clauseKey] = {};
                             }
-                            out.where[clauseKey][founded.dbField] = [value + (queryStruct[fieldIndex].caseSensitive ? "$" : "")]
+                            out.where[clauseKey][founded.dbField] = [value + (queryStruct[fieldIndex].caseSensitive ? '$' : '')];
                         } else {
                             if (!out.where.equals) {
                                 out.where.equals = {};

@@ -7,7 +7,7 @@ import TableController from './tableController';
 @ControllerConfig({ baseRoute: 'scores', accessLevel: UserAccessLevel.USER })
 class ScoreController extends TableController<Score, ScoreClientPayload> {
     constructor() {
-        super(ScoreModule)
+        super(ScoreModule);
     }
 
     // @Get("/form/add", UserAccessLevel.USER)
@@ -16,7 +16,7 @@ class ScoreController extends TableController<Score, ScoreClientPayload> {
     //     res.json(get.search);
     // }
 
-    @Get("/form/bars", UserAccessLevel.USER)
+    @Get('/form/bars', UserAccessLevel.USER)
     public async GetFormBarsStructure(_req: AppRequest, res: AppResponse): Promise<void> {
         const get = await ScoreModule.getBarsFormStruct();
         res.json(get.search);
@@ -31,7 +31,7 @@ class ScoreController extends TableController<Score, ScoreClientPayload> {
     //     const get = await ScoreModule.getUserScoresList();
     //     res.json(get);
     // }
-    @Put("/:id/content", UserAccessLevel.USER)
+    @Put('/:id/content', UserAccessLevel.USER)
     public async UpdateScoreContent(req: AppParams<{ id: number }, { datas: ScorePage[] }>, res: AppResponse): Promise<void> {
         await ScoreModule.saveScoreContent(req.params.id, req.body.datas);
         res.json({ success: true });

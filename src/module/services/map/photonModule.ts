@@ -9,8 +9,7 @@ class PhotonModule extends ApiManager {
 
     // public --> start region /////////////////////////////////////////////
     public async autocomplete(query: string): Promise<PhotonMapType> {
-
-        const result = await this.get<PhotonMapType>("api", { lang: "fr", q: query })
+        const result = await this.get<PhotonMapType>('api', { lang: 'fr', q: query });
         return result;
     }
 
@@ -21,8 +20,7 @@ class PhotonModule extends ApiManager {
     }
 
     public async getByCoordinate(lon: number, lat: number): Promise<PhotonMapType> {
-
-        const result = await this.get<PhotonMapType>("reverse", { lang: "fr", lon, lat });
+        const result = await this.get<PhotonMapType>('reverse', { lang: 'fr', lon, lat });
         return result;
     }
     // public --> end region ///////////////////////////////////////////////

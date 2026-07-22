@@ -1,6 +1,6 @@
-import { BaseModel } from "~/types/typeCore";
-import { Model } from "./base";
-import { ApiTable } from "~/types/coreApiTypes";
+import { BaseModel } from '~/types/typeCore';
+import { Model } from './base';
+import { ApiTable } from '~/types/coreApiTypes';
 
 export class DataText extends Model implements BaseModel {
     protected static override table = ApiTable.DATATEXT;
