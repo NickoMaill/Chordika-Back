@@ -16,6 +16,12 @@ class DataTextController extends TableController<DataText, null> {
         res.json(countries);
     }
 
+    @Get('/tracks', UserAccessLevel.USER)
+    private async searchTracks(req: AppQuery<{ q: string; code: string }>, res: AppResponse<OutputQueryRequest<DataText>>): Promise<void> {
+        const tracks = await DataTextModule.searchTracks(req.query?.q, req.query?.code);
+        res.json(tracks);
+    }
+
     // public --> start region /////////////////////////////////////////////
     // public --> end region ///////////////////////////////////////////////
 

@@ -1,3 +1,4 @@
+import { UserRegisterPayload } from './../models/users';
 import ControllerBase, { AppParams, AppRequest, AppResponse, ControllerConfig, Get, Post } from '~/core/controllerBase';
 import adminManager from '~/managers/adminManager';
 import { UserApiModel, UserPayloadLogin } from '~/models/users';
@@ -11,6 +12,23 @@ import dayjs from 'dayjs';
 
 @ControllerConfig({ baseRoute: "auth", accessLevel: UserAccessLevel.USER })
 class AuthController extends ControllerBase {
+    @Post('/register', UserAccessLevel.VISITOR)
+    private async register(req: AppRequest<UserRegisterPayload>, res: AppResponse): Promise<void> {
+        const creds = await adminManager.registerUser(req);
+        const expires = dayjs().add(1, 'day').toDate();
+        const userInfo: UserApiModel = {
+            id: Ses.UID,
+            firstName: Ses.UserFirstName,
+            lastName: Ses.UserLastName,
+            name: Ses.UserName,
+            email: Ses.UserEmail,
+            levelAccess: Ses.AccessLevel as UserAccessLevel,
+            token: null,
+        };
+        res.cookie('refresh', creds.token, AppTools.getCookieOptions(expires));
+        res.cookie('deviceId', creds.deviceId, AppTools.getCookieOptions(dayjs().add(10, 'years').toDate()));
+        res.json(userInfo);
+    }
     @Post('/login', UserAccessLevel.VISITOR)
     private async login(req: AppRequest<UserPayloadLogin>, res: AppResponse): Promise<void> {
         const creds = await adminManager.checkLogin(req);

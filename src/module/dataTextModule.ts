@@ -1,3 +1,5 @@
+import { MusicTrack } from './../models/musicTrack';
+import resourcesManager from '~/managers/resourcesManager';
 import { DataText } from '~/models/dataText';
 import Table from './table';
 import { ApiTable, QuerySearch } from '~/types/coreApiTypes';
@@ -59,6 +61,32 @@ export class DataTextModule extends Table<DataText, null> {
             records: countries,
             totalRecords: countries.length,
             limit: countries.length,
+            offset: 0,
+        };
+        return out;
+    }
+
+    public static async searchTracks(q: string, code?: string): Promise<OutputQueryRequest<DataText>> {
+        let tracks: MusicTrack[] = [];
+        if (code) {
+            tracks = await resourcesManager.getMusicTrack(Number(code));
+        } else {
+            tracks = await resourcesManager.searchMusicTrack(q);
+        }
+        const datas = tracks.map<DataText>((d, i) => ({
+            id: d.id,
+            code: d.id.toString(),
+            description: [d.title, d.artist, d.album].join(' - '),
+            sortOrder: i,
+            type: 'tracks',
+            addedAt: null,
+            updatedAt: null,
+        }));
+
+        const out: OutputQueryRequest<DataText> = {
+            records: datas,
+            totalRecords: datas.length,
+            limit: datas.length,
             offset: 0,
         };
         return out;

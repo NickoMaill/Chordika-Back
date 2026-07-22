@@ -324,7 +324,7 @@ export default class UserModule extends Table<User, UserPayload> {
         if ((this.Payload.password ?? '') !== '') {
             this.Payload.password = await bcrypt.hash(this.Payload.password, 5);
         }
-        const inserted = await this.db.insert<UserPayload, User>(this.Payload, ['name', 'email']);
+        const inserted = await this.db.insert<UserPayload, User>(this.Payload, ['email']);
         await App.queryDo('INSERT INTO usersPreferences (UserId) VALUES ($1)', inserted.records[0].id);
         return inserted;
     }

@@ -1,5 +1,5 @@
-import path from 'path';
-import fs from 'fs';
+import { AppTools } from '~/helpers/appTools';
+import { UserRegisterPayload, UserPayload } from './../models/users';
 import { TokenPayload, User, UserPayloadLogin, UserToken } from '~/models/users';
 import userModule from '~/module/userModule';
 import { StandardError } from '~/core/class/standardError';
@@ -17,24 +17,70 @@ import Validator from '~/core/class/Validator';
 
 class AdminManager {
     // public --> start region /////////////////////////////////////////////
-    public static setInvalidLoginForm(message: string, email: string): string {
-        let htmlContent = fs.readFileSync(path.join(__dirname, '../views/login.html'), { encoding: 'utf-8' });
-        htmlContent = htmlContent.replaceAll('{0}', 'is-invalid').replace('&nbsp;', message).replace('data-value', `value="${email}"`);
-        return htmlContent;
-    }
+    public static async registerUser(req: AppRequest<UserRegisterPayload | UserPayloadLogin>): Promise<{ token: string; deviceId: string }> {
+        const payload: UserRegisterPayload = req.body as UserRegisterPayload;
+        if (!payload.firstName || payload.firstName === '') throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'firstName_required', 'firstName is required', 'firstName is required', false, [{ field: 'firstName', message: 'Le prénom est requis' }]);
+        if (!payload.lastName || payload.lastName === '') throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'lastName_required', 'lastName is required', 'lastName is required', false, [{ field: 'lastName', message: 'Le nom est requis' }]);
+        if (!payload.email || payload.email === '') throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'email_required', 'email is required', 'email is required', false, [{ field: 'email', message: "L'email est requis" }]);
+        if (!payload.password || payload.password === '') throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'password_required', 'password is required', 'password is required', false, [{ field: 'password', message: 'Le mot de passe est requis' }]);
+        if (!payload.conditions || payload.conditions === '' || !payload.conditions.split(',').includes('acceptCondition')) throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'condition_required', 'need to accept the condition', 'need to accept the condition', false, [{ field: 'conditions', message: 'Vous devez accepter nos conditions pour pouvoir continuer', name: 'acceptCondition' }]);
+        if (!AppTools.emailRegex.test(payload.email)) throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'email_invalid', 'email format is invalid', 'email format is invalid', false, [{ field: 'email', message: "Le format de l'email est incorrect" }]);
 
-    public static setInvalidOtpForm(message: string): string {
-        let htmlContent = fs.readFileSync(path.join(__dirname, '../views/mfa.html'), { encoding: 'utf-8' });
-        htmlContent = htmlContent.replaceAll('{0-1}', 'is-invalid');
-        htmlContent = htmlContent.replace('&nbsp;', message);
-        return htmlContent;
-    }
+        const founded = await User.getByQuery({ where: { equals: { email: payload.email.trim().toLowerCase() } } });
+        if (founded.totalRecords > 0) throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'email_already_used', 'email provided already used', 'email provided already used', false, [{ field: 'email', message: "L'email fourni est déjà utilisé" }]);
 
+        if (payload.password !== payload.confirmPassword) throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'password_mismatch', 'email provided already used', 'email provided already used', false, [{ field: 'confirmPassword', message: 'Les mots de passe ne concordent pas' }]);
+        this.validatePassword(payload);
+
+        const hashedPassword = await bcrypt.hash(payload.password, 5);
+        const newUser: UserPayload = {
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            userName: (payload.firstName[0] + payload.lastName).toLowerCase(),
+            email: payload.email.trim().toLowerCase(),
+            levelAccess: UserAccessLevel.USER,
+            password: hashedPassword,
+        };
+        const inserted = await User.new<User, UserPayload>(newUser, ['email']);
+
+        const loginPayload: UserPayloadLogin = {
+            Username: inserted.email,
+            Password: payload.password,
+            RememberMe: false,
+        };
+        req.body = loginPayload;
+        const creds = await this.checkLogin(req as AppRequest<UserPayloadLogin>);
+        return creds;
+    }
+    private static validatePassword(payload: UserRegisterPayload): void {
+        const password = payload.password ?? '';
+        const confirmPassword = payload.confirmPassword ?? '';
+        if (!password) throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'password_required', 'password is required', 'password is required', false, [{ field: 'password', message: 'Le mot de passe est requis' }]);
+
+        const match = AppTools.passwordRegex.test(password);
+        if (!match) throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'password_required', 'password is required', 'password is required', false, [{ field: 'password', message: 'Votre mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.' }]);
+        if (password !== confirmPassword) throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'password_mismatch', 'passwords do not match', 'passwords do not match', false, [{ field: 'confirmPassword', message: 'Les mots de passe ne concordent pas' }]);
+
+        const passwordLength = [...password].length;
+
+        if (passwordLength < 12) throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'password_too_short', 'password is too short', 'password is too short', false, [{ field: 'password', message: 'Le mot de passe doit contenir au moins 12 caractères' }]);
+        if (passwordLength > 128) throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'password_too_long', 'password is too long', 'password is too long', false, [{ field: 'password', message: 'Le mot de passe ne doit pas dépasser 128 caractères' }]);
+
+        const normalizedPassword = password.normalize('NFC').toLocaleLowerCase();
+        const forbiddenValues = [payload.firstName, payload.lastName, payload.email?.split('@')[0], 'chordika']
+            .filter((value): value is string => Boolean(value))
+            .map((value) => value.normalize('NFC').toLocaleLowerCase().trim())
+            .filter((value) => value.length >= 3);
+
+        const containsPersonalValue = forbiddenValues.some((value) => normalizedPassword.includes(value));
+
+        if (containsPersonalValue) throw new StandardError('AdminManager.registerUser', 'BAD_REQUEST', 'password_contains_personal_data', 'password contains personal data', 'password contains personal data', false, [{ field: 'password', message: 'Le mot de passe ne doit pas contenir votre nom, votre prénom ou votre e-mail' }]);
+    }
     public static async checkLogin(req: AppRequest<UserPayloadLogin>): Promise<{ token: string; deviceId: string }> {
         if (req.body.Username === '' || !req.body.Username) throw new StandardError('AdminManager.checkLogin', 'BAD_REQUEST', 'email_required', 'email is required', 'email is required to login');
         if (req.body.Password === '' || !req.body.Password) throw new StandardError('AdminManager.checkLogin', 'BAD_REQUEST', 'password_required', 'password is required', 'password is required to login');
         // get user admin info
-        const founded = await userModule.getOneByEmail(req.body.Username);
+        const founded = await userModule.getOneByEmail(req.body.Username.trim().toLowerCase());
         // if not founded refuse access
         if (!founded) throw new StandardError('AdminManager.checkLogin', 'BAD_REQUEST', 'wrong_credentials', 'email or password invalid', 'email or password invalid');
         // check password hash

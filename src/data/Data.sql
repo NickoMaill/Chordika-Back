@@ -122,7 +122,7 @@ CREATE TABLE schedulesTasks (
   CONSTRAINT fk_Schedules_UserId FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE SET NULL
 );
 
-CREATE TABLE ChordGrids (
+CREATE TABLE Scores (
   ID SERIAL PRIMARY KEY,
   userId INTEGER,
   isLib BOOLEAN DEFAULT FALSE,
@@ -141,6 +141,26 @@ CREATE TABLE ChordGrids (
 
 CREATE TRIGGER update_updatedAt
     BEFORE UPDATE
-    ON ChordGrids
+    ON Scores
+    FOR EACH ROW
+EXECUTE PROCEDURE update_updatedAt();
+
+CREATE TABLE ScoreMetadatas (
+  ID SERIAL PRIMARY KEY,
+  scoreId INTEGER NOT NULL,
+  composer VARCHAR(250) NOT NULL,
+  album VARCHAR(250),
+  releaseDate TIMESTAMP,
+  artworkUrl VARCHAR(250),
+  previewUrl VARCHAR(450),
+  externalId INTEGER,
+  addedAt TIMESTAMP DEFAULT NOW(),
+  updatedAt TIMESTAMP,
+  CONSTRAINT fk_score_meta FOREIGN KEY(scoreId) REFERENCES scores(id)
+);
+
+CREATE TRIGGER update_updatedAt
+    BEFORE UPDATE
+    ON ScoreMetadatas
     FOR EACH ROW
 EXECUTE PROCEDURE update_updatedAt();

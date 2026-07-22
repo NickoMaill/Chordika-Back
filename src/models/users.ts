@@ -23,7 +23,7 @@ export type UserPayload = {
     email: string;
     firstName: string;
     lastName: string;
-    name: string;
+    userName: string;
     levelAccess: UserAccessLevel;
     password: string;
 };
@@ -42,6 +42,15 @@ export type UserPayloadLogin = {
     Username: string;
     Password: string;
     RememberMe: boolean;
+};
+
+export type UserRegisterPayload = {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    conditions: string;
 };
 
 export class UserToken extends Model implements BaseModel {
